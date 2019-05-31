@@ -8,6 +8,8 @@ import org.apache.commons.csv.CSVPrinter;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
@@ -28,7 +30,7 @@ import java.util.regex.Pattern;
 public class Main {
 
 
-    static Path cesta = Paths.get("/Users/lukasmac/Downloads/AnalytikaOdkazuVDokumentech/odkazyCSV.csv");
+    static Path cesta = Paths.get("/Users/lukasmac/Downloads/AnalytikaOdkazu/odkazyCSV.csv");
 
     /**
      * Funkce pro převod hex textu na String
@@ -66,6 +68,21 @@ public class Main {
         return linkList;
     }
 
+    private static boolean hasMoreThanOneLine(Path pwd) throws IOException {
+        boolean headerCheck = false;
+        BufferedReader reader = new BufferedReader(new FileReader(String.valueOf(pwd)));
+        int lines = 0;
+        while (reader.readLine() != null) {
+            lines++;
+            if (lines > 1 ) {
+                headerCheck = true;
+                break;
+            }
+        }
+        reader.close();
+        return headerCheck;
+    }
+
     /**
      * Funkce pro zapsání požadovaných odkazů do souboru
      *
@@ -74,11 +91,9 @@ public class Main {
      * @throws IOException
      */
     private static void fileWriter(List<String> polozkyProZapsani, String docmanId) throws IOException {
-
         String[] HEADERS = {"TextOdkazu", "Zdroj", "Cil", "MistoVCili"};
         FileWriter out = new FileWriter("odkazyCSV.csv", true);
-
-        try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(HEADERS).withSkipHeaderRecord(true)
+        try (CSVPrinter printer = new CSVPrinter(out, CSVFormat.DEFAULT.withHeader(HEADERS).withSkipHeaderRecord(hasMoreThanOneLine(cesta))
         )) {
             for (String item : polozkyProZapsani) {
                 if (item.charAt(0) == 'j') {
